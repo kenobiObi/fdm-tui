@@ -1,99 +1,101 @@
 # FDM-TUI
 
-Gestionnaire de téléchargements en terminal, écrit en Python (asyncio + [Textual](https://textual.textualize.io/)), inspiré de Free Download Manager.
+English | [Français](README.fr.md)
 
-## Fonctionnalités
+A terminal download manager written in Python (asyncio + [Textual](https://textual.textualize.io/)), inspired by Free Download Manager.
 
-- **Téléchargement accéléré** multi-connexions (jusqu'à 32 segments) avec découpage dynamique
-- **Pause / reprise**, y compris après redémarrage (état sauvegardé dans `~/.config/fdm_tui/`)
-- **File d'attente** avec nombre de téléchargements simultanés réglable et réordonnancement
-- **Limite de vitesse** globale et par fichier
-- **Réessais automatiques** avec attente croissante, **miroirs** de secours
-- **Tri automatique par catégorie** (Vidéos, Musique, Images, Documents, Archives, Programmes, Torrents)
-- **Téléchargement par lots** : `http://site/img[001-050].jpg`
-- **Aspirateur de page web** avec filtre d'extensions
-- **Vidéos** (YouTube, Vimeo…) via [yt-dlp](https://github.com/yt-dlp/yt-dlp)
-- **Torrents** (magnets et `.torrent`) via libtorrent
-- **Planificateur** : plage horaire autorisée, action de fin (quitter / veille / extinction)
-- **Options par lien** : referer, cookies, en-têtes, nom, dossier, segments
-- **Vérification de somme de contrôle** (MD5, SHA-1, SHA-256, SHA-512)
-- Proxy HTTP / SOCKS5, surveillance du presse-papiers, import / export de listes
+## Features
+
+- **Accelerated downloads** with multiple connections (up to 32 segments) and dynamic splitting
+- **Pause / resume**, including after a restart (state saved in `~/.config/fdm_tui/`)
+- **Download queue** with an adjustable number of simultaneous downloads and reordering
+- **Speed limit**, global and per file
+- **Automatic retries** with increasing delays, plus backup **mirrors**
+- **Automatic sorting by category** (Videos, Music, Images, Documents, Archives, Programs, Torrents)
+- **Batch downloads**: `http://site/img[001-050].jpg`
+- **Web page grabber** with an extension filter
+- **Videos** (YouTube, Vimeo…) via [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+- **Torrents** (magnet links and `.torrent` files) via libtorrent
+- **Scheduler**: allowed time window, end-of-queue action (quit / sleep / shutdown)
+- **Per-link options**: referer, cookies, headers, file name, folder, segments
+- **Checksum verification** (MD5, SHA-1, SHA-256, SHA-512)
+- HTTP / SOCKS5 proxy, clipboard monitoring, list import / export
 
 ## Installation
 
 ```bash
-git clone https://github.com/<utilisateur>/fdm-tui.git
+git clone https://github.com/kenobiObi/fdm-tui.git
 cd fdm-tui
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Fonctions optionnelles :
+Optional features:
 
 ```bash
-pip install yt-dlp          # vidéos
-pip install libtorrent      # torrents (ou : sudo dnf install python3-libtorrent)
+pip install yt-dlp          # videos
+pip install libtorrent      # torrents (or: sudo dnf install python3-libtorrent)
 ```
 
-Sur Fedora avec libtorrent installé par `dnf`, crée le venv avec `--system-site-packages`.
-Pour le presse-papiers : `wl-clipboard` (Wayland), `xclip` ou `xsel` (X11).
-Les proxys `socks5://` demandent `pip install "httpx[socks]"`.
+On Fedora, if libtorrent was installed with `dnf`, create the venv with `--system-site-packages`.
+For clipboard monitoring: `wl-clipboard` (Wayland), `xclip` or `xsel` (X11).
+`socks5://` proxies require `pip install "httpx[socks]"`.
 
-Installation comme commande : `pip install .` puis `fdm-tui`.
+To install it as a command: `pip install .`, then run `fdm-tui`.
 
-## Utilisation
+## Usage
 
 ```bash
 python3 fdm_tui.py
-python3 fdm_tui.py "https://site/fichier.iso" "magnet:?xt=..." -d ~/Telechargements
-python3 fdm_tui.py -f liens.txt
+python3 fdm_tui.py "https://site/file.iso" "magnet:?xt=..." -d ~/Downloads
+python3 fdm_tui.py -f links.txt
 ```
 
-Appuie sur `h` dans l'application pour l'aide.
+Press `h` in the application for help.
 
-| Touche | Action |
+| Key | Action |
 |---|---|
-| `a` | Ajouter des liens (multi-lignes, options) |
-| `g` | Aspirer les liens d'une page web |
-| `m` / `x` | Importer / exporter une liste |
-| `p` / `P` | Pause-reprise / tout en pause |
-| `r` | Recommencer |
-| `d` / `D` | Retirer / retirer + supprimer les fichiers |
-| `C` | Vider les téléchargements terminés |
-| `[` / `]` | Monter / descendre dans la file |
-| `t` | Changer de filtre |
-| `l` | Limite de vitesse globale |
-| `s` | Réglages |
-| `e` | Action de fin |
-| `c` | Surveiller le presse-papiers |
-| `i` / Entrée | Détails et carte des segments |
-| `o` / `f` | Ouvrir le fichier / le dossier |
-| `q` | Quitter |
+| `a` | Add links (multi-line, with options) |
+| `g` | Grab the links from a web page |
+| `m` / `x` | Import / export a list |
+| `p` / `P` | Pause-resume / pause all |
+| `r` | Restart |
+| `d` / `D` | Remove / remove and delete the files |
+| `C` | Clear completed downloads |
+| `[` / `]` | Move up / down in the queue |
+| `t` | Change filter |
+| `l` | Global speed limit |
+| `s` | Settings |
+| `e` | End-of-queue action |
+| `c` | Monitor the clipboard |
+| `i` / Enter | Details and segment map |
+| `o` / `f` | Open the file / the folder |
+| `q` | Quit |
 
-### Syntaxe d'une ligne
+### Line syntax
 
 ```
-URL [URL…] [-o nom] [-d dossier] [-r referer] [-c "cookie"] [-H "Clé: valeur"]
-           [-n segments] [-m miroir] [--checksum sha256:…] [--limite Ko/s]
+URL [URL…] [-o name] [-d folder] [-r referer] [-c "cookie"] [-H "Key: value"]
+           [-n segments] [-m mirror] [--checksum sha256:…] [--limite KB/s]
            [-v] [-q 720|best|audio]
 ```
 
 ## Tests
 
 ```bash
-python3 tests/test_moteur.py   # moteur contre un serveur HTTP local (~1 min)
-python3 tests/test_tui.py      # interface via le pilote de test de Textual
+python3 tests/test_moteur.py   # engine against a local HTTP server (~1 min)
+python3 tests/test_tui.py      # interface via Textual's test pilot
 ```
 
-## Limites
+## Limitations
 
-Pas d'extension navigateur, pas de FTP, pas de téléchargement de pages complètes ni de conversion de médias.
+No browser extension, no FTP, no full web page downloads and no media conversion.
 
-## Avertissement
+## Disclaimer
 
-N'utilise cet outil que pour télécharger des contenus que tu as le droit de télécharger.
+Only use this tool to download content you have the right to download.
 
-## Licence
+## License
 
-MIT — voir [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
