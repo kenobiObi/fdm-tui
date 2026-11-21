@@ -1,5 +1,6 @@
 # FDM-TUI
 
+[English](README.md) | Français
 Gestionnaire de téléchargements en terminal, écrit en Python (asyncio + [Textual](https://textual.textualize.io/)), inspiré de Free Download Manager.
 
 ## Fonctionnalités
