@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fdm-tui"
+version = "1.0.0"
+description = "Gestionnaire de téléchargements en terminal (TUI), inspiré de Free Download Manager"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["textual>=0.80", "httpx>=0.26"]
+
+[project.optional-dependencies]
+video = ["yt-dlp"]
+torrent = ["libtorrent"]
+all = ["yt-dlp", "libtorrent"]
+
+[project.scripts]
+fdm-tui = "fdm_tui:main"
+
+[tool.setuptools]
+py-modules = ["fdm_tui"]
