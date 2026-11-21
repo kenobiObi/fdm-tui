@@ -24,7 +24,7 @@ Gestionnaire de téléchargements en terminal, écrit en Python (asyncio + [Text
 ## Installation
 
 ```bash
-git clone https://github.com/<utilisateur>/fdm-tui.git
+git clone https://github.com/kenobiObi/fdm-tui.git
 cd fdm-tui
 python3 -m venv venv
 source venv/bin/activate
