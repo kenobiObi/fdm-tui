@@ -250,6 +250,14 @@ def ecrire_json(chemin: Path, data) -> None:
     os.replace(tmp, chemin)
 
 
+def chemin_absolu(chemin: str, base: str | Path | None = None) -> str:
+    """Rend un chemin absolu (~ développé). Un chemin relatif est ancré sur `base` (ou le dossier courant)."""
+    p = os.path.expanduser(chemin)
+    if not os.path.isabs(p) and base is not None:
+        p = os.path.join(str(base), p)
+    return os.path.abspath(p)
+
+
 def ouvrir_chemin(chemin: str) -> bool:
     try:
         if sys.platform.startswith("win"):
@@ -391,7 +399,9 @@ class Config:
         except (OSError, ValueError):
             data = {}
         noms = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in data.items() if k in noms})
+        cfg = cls(**{k: v for k, v in data.items() if k in noms})
+        cfg.dossier = chemin_absolu(cfg.dossier, Path.home())
+        return cfg
 
     def sauver(self, chemin: Path = FICHIER_CONFIG) -> None:
         try:
@@ -545,6 +555,9 @@ class Gestionnaire:
                 continue
             if d.statut == "downloading":
                 d.statut = "queued"  # reprise automatique
+            if d.kind == "http" and d.statut != "completed" and d.chemin and not os.path.isabs(d.chemin):
+                # ancien chemin relatif (dépend du dossier de lancement) : on le recalcule
+                d.sonde, d.chemin, d.segments, d.fait = False, "", [], 0
             self.liste.append(d)
             self.prochain = max(self.prochain, d.id + 1)
 
@@ -615,7 +628,7 @@ class Gestionnaire:
         """Sécurité : on ne supprime que ce qui est sous le dossier de téléchargement."""
         try:
             p = Path(chemin).resolve()
-            racines = [Path(self.cfg.dossier).expanduser().resolve()]
+            racines = [Path(chemin_absolu(self.cfg.dossier, Path.home())).resolve()]
             if d.dossier:
                 racines.append(Path(d.dossier).resolve())
             return any(p != r and p.is_relative_to(r) for r in racines)
@@ -782,9 +795,9 @@ class Gestionnaire:
 
     def _dossier_pour(self, d: Download, cat: str) -> Path:
         if d.dossier_perso:
-            base = Path(d.dossier_perso).expanduser()
+            base = Path(chemin_absolu(d.dossier_perso))
         else:
-            base = Path(self.cfg.dossier).expanduser()
+            base = Path(chemin_absolu(self.cfg.dossier, Path.home()))
             if self.cfg.tri_auto:
                 base = base / cat
         try:
@@ -846,7 +859,12 @@ class Gestionnaire:
 
     async def _http_segments(self, client, d: Download, part: Path) -> None:
         if not part.exists() or part.stat().st_size != d.taille or not d.segments:
-            if shutil.disk_usage(part.parent).free < d.taille:
+            try:
+                part.parent.mkdir(parents=True, exist_ok=True)
+                libre = shutil.disk_usage(part.parent).free
+            except OSError as e:
+                raise ErreurFatale(f"Dossier inaccessible : {e}") from e
+            if libre < d.taille:
                 raise ErreurFatale("Espace disque insuffisant")
             try:
                 with open(part, "wb") as f:
@@ -962,6 +980,10 @@ class Gestionnaire:
                 raise ErreurTelechargement("transfert incomplet")
 
         d.segments = []
+        try:
+            part.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            raise ErreurFatale(f"Dossier inaccessible : {e}") from e
         await self._reessayer(tentative)
         if not d.taille:
             d.taille = d.fait
@@ -974,11 +996,17 @@ class Gestionnaire:
         except OSError as e:
             raise ErreurFatale(f"Impossible de finaliser le fichier : {e}") from e
         d.segments = []
-        d.fait = d.taille = os.path.getsize(d.chemin)
+        try:
+            d.fait = d.taille = os.path.getsize(d.chemin)
+        except OSError as e:
+            raise ErreurFatale(f"Fichier final introuvable : {e}") from e
         if d.checksum:
             d.info = "Vérification…"
             algo, attendu = parser_checksum(d.checksum)
-            obtenu = await asyncio.to_thread(hacher_fichier, d.chemin, algo)
+            try:
+                obtenu = await asyncio.to_thread(hacher_fichier, d.chemin, algo)
+            except OSError as e:
+                raise ErreurFatale(f"Vérification impossible : {e}") from e
             d.verif = "ok" if obtenu == attendu else "ko"
             d.info = ""
         d.statut, d.termine = "completed", time.time()
@@ -1346,7 +1374,7 @@ class ReglagesScreen(ModalScreen[dict]):
         except ValueError as e:
             self.app.notify(_echapper(f"Valeur invalide : {e}"), severity="error")
             return
-        res.update(dossier=val("dossier"), proxy=val("proxy"), plage=val("plage"),
+        res.update(dossier=chemin_absolu(val("dossier"), Path.home()), proxy=val("proxy"), plage=val("plage"),
                    user_agent=val("user_agent") or self.cfg.user_agent,
                    tri_auto=self.query_one("#r-tri_auto", Switch).value,
                    presse_papiers=self.query_one("#r-presse_papiers", Switch).value)
@@ -1908,7 +1936,7 @@ def main() -> None:
 
     cfg = Config.charger()
     if args.dossier:
-        cfg.dossier = str(Path(args.dossier).expanduser())
+        cfg.dossier = chemin_absolu(args.dossier)
     if args.proxy:
         cfg.proxy = args.proxy
     if args.simultanes:
