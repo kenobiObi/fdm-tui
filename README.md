@@ -47,9 +47,8 @@ To install it as a command: `pip install .`, then run `fdm-tui`.
 ## Usage
 
 ```bash
-python3 fdm_tui.py
-python3 fdm_tui.py "https://site/file.iso" "magnet:?xt=..." -d ~/Downloads
-python3 fdm_tui.py -f links.txt
+chmod +x run.sh #only once
+./run.sh
 ```
 
 Press `h` in the application for help.
