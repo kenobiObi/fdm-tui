@@ -47,7 +47,7 @@ Installation comme commande : `pip install .` puis `fdm-tui`.
 ## Utilisation
 
 ```bash
-chmod +x run.sh
+chmod +x run.sh #une seule fois
 ./run.sh
 ```
 
