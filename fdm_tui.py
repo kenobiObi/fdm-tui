@@ -1897,13 +1897,13 @@ class FdmApp(App):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         bid = event.button.id
-        if bid == "b-ajouter":
+        if bid == "b-Add":
             self.action_ajouter()
         elif bid == "b-pause":
             self.action_pause()
-        elif bid == "b-retirer":
+        elif bid == "b-remove":
             self.action_retirer(False)
-        elif bid == "b-reglages":
+        elif bid == "b-settings":
             self.action_reglages()
         if self._principal():
             self.query_one(DataTable).focus()
@@ -1925,13 +1925,13 @@ class FdmApp(App):
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Gestionnaire de téléchargements TUI (inspiré de FDM)")
-    p.add_argument("sources", nargs="*", help="liens à ajouter (chaque argument = une ligne, options possibles)")
-    p.add_argument("-d", "--dossier", help="dossier de téléchargement")
-    p.add_argument("-f", "--fichier", help="fichier texte de liens à importer")
-    p.add_argument("--proxy", help="proxy http:// ou socks5://")
-    p.add_argument("--simultanes", type=int, help="nombre de téléchargements simultanés")
-    p.add_argument("--limite", type=int, help="limite globale en Ko/s")
+    p = argparse.ArgumentParser(description="Terminal-Based Download Manager")
+    p.add_argument("sources", nargs="*", help="links to add (each argument = one line, possible options)")
+    p.add_argument("-d", "--directory", help="Download folder")
+    p.add_argument("-f", "--file", help="text file or links to import")
+    p.add_argument("--proxy", help="proxy http:// or socks5://")
+    p.add_argument("--simultaneous", type=int, help="number of simultaneous downloads")
+    p.add_argument("--limit", type=int, help="global limit in kB/s")
     args = p.parse_args()
 
     cfg = Config.charger()

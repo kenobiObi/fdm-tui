@@ -24,31 +24,27 @@ Gestionnaire de téléchargements en terminal, écrit en Python (asyncio + [Text
 ## Installation
 
 ```bash
-git clone https://github.com/kenobiObi/fdm-tui.git
-cd fdm-tui
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/kenobiObi/fdm-tui.git && cd fdm-tui
+chmod +x install.sh
+bash install.sh
 ```
 
 Fonctions optionnelles :
 
 ```bash
-pip install yt-dlp          # vidéos
-pip install libtorrent      # torrents (ou : sudo dnf install python3-libtorrent)
+bash install.sh --video	   #ajoute yt-dlp
+bash install.sh --torrent	   #ajoute libtorrent via pip
+bash install.sh --all	   #ajoute les deux
+bash install.sh --system-site-packages	   #le venv voit les paquets du système
+bash install.sh --uninstall	   #désinstalle
 ```
-
-Sur Fedora avec libtorrent installé par `dnf`, crée le venv avec `--system-site-packages`.
-Pour le presse-papiers : `wl-clipboard` (Wayland), `xclip` ou `xsel` (X11).
-Les proxys `socks5://` demandent `pip install "httpx[socks]"`.
-
-Installation comme commande : `pip install .` puis `fdm-tui`.
 
 ## Utilisation
 
 ```bash
-chmod +x run.sh #une seule fois
-./run.sh
+tfdm
+tfdm "https://site/fichier.iso" -d ~/Telechargements
+tfdm -f liens.txt
 ```
 
 Appuie sur `h` dans l'application pour l'aide.

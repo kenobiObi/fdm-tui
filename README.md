@@ -24,31 +24,28 @@ A terminal download manager written in Python (asyncio + [Textual](https://textu
 ## Installation
 
 ```bash
-git clone https://github.com/kenobiObi/fdm-tui.git
-cd fdm-tui
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/kenobiObi/fdm-tui.git && cd fdm-tui
+chmod +x install.sh
+bash install.sh
 ```
 
 Optional features:
 
 ```bash
-pip install yt-dlp          # videos
-pip install libtorrent      # torrents (or: sudo dnf install python3-libtorrent)
+bash install.sh --video adds yt-dlp
+bash install.sh --torrent adds libtorrent via pip
+bash install.sh --all adds both
+bash install.sh --system-site-packages allows the venv to see system packages—useful when python3-libtorrent is installed via dnf
+bash install.sh --uninstall performs an uninstallation
 ```
 
-On Fedora, if libtorrent was installed with `dnf`, create the venv with `--system-site-packages`.
-For clipboard monitoring: `wl-clipboard` (Wayland), `xclip` or `xsel` (X11).
-`socks5://` proxies require `pip install "httpx[socks]"`.
-
-To install it as a command: `pip install .`, then run `fdm-tui`.
 
 ## Usage
 
 ```bash
-chmod +x run.sh #only once
-./run.sh
+tfdm
+tfdm "https://site/files.iso" -d ~/Downloads
+tfdm -f liens.txt
 ```
 
 Press `h` in the application for help.
